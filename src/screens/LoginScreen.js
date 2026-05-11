@@ -12,77 +12,142 @@ import colors from "../constants/colors";
 import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
-  const { setUser } = useContext(AuthContext);
 
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
+  const { setUser } =
+    useContext(AuthContext);
+
+  const [correo, setCorreo] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
 
   const iniciarSesion = async () => {
-    if (!correo.trim() || !password.trim()) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+
+    if (
+      !correo.trim() ||
+      !password.trim()
+    ) {
+
+      Alert.alert(
+        "Error",
+        "Todos los campos son obligatorios"
+      );
+
       return;
     }
 
     try {
+
       const response = await fetch(
-        "http://10.10.1.44/academia/api/login.php",
+        "http://192.168.110.143/academia/api/login.php",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type":
+              "application/x-www-form-urlencoded",
           },
+
           body:
-            `correo=${encodeURIComponent(correo.trim())}` +
-            `&password=${encodeURIComponent(password.trim())}`,
+            `correo=${encodeURIComponent(
+              correo.trim()
+            )}` +
+            `&password=${encodeURIComponent(
+              password.trim()
+            )}`,
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status}`);
-      }
+      const data =
+        await response.json();
 
-      const text = await response.text();
-
-      if (!text) {
-        throw new Error("El servidor no respondió");
-      }
-
-      let data;
-
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("Respuesta inválida del servidor");
-      }
-
+      // 🔵 LOGIN CORRECTO
       if (data.success === true) {
+
+        // 🔵 GUARDAR USUARIO
+        setUser(data.usuario);
+
         Alert.alert(
           "Bienvenido",
           `Hola ${data.usuario.nombre}`
         );
 
-        // Guardar usuario en contexto
-        setUser(data.usuario);
+        // 🔵 REDIRECCIONES POR ROL
+
+        // 👨‍🏫 DOCENTE
+        if (
+          data.usuario.rol ===
+          "docente"
+        ) {
+
+          navigation.replace(
+            "PaseListaScreen"
+          );
+        }
+
+        // 👨‍💼 PRESIDENTE
+        else if (
+          data.usuario.rol ===
+          "presidente"
+        ) {
+
+          navigation.replace(
+            "AsistenciaAdminScreen"
+          );
+        }
+
+        // 👨‍💼 SECRETARIO
+        else if (
+          data.usuario.rol ===
+          "secretario"
+        ) {
+
+          navigation.replace(
+            "AsistenciaAdminScreen"
+          );
+        }
+
+        // 👨‍💼 JEFE
+        else if (
+          data.usuario.rol ===
+          "jefe"
+        ) {
+
+          navigation.replace(
+            "AsistenciaAdminScreen"
+          );
+        }
+
+        // 🔵 SI NO TIENE ROL
+        else {
+
+          navigation.replace(
+            "Home"
+          );
+        }
 
       } else {
+
         Alert.alert(
           "Error",
-          data.message || "Correo o contraseña incorrectos"
+          data.message ||
+            "Correo o contraseña incorrectos"
         );
       }
 
     } catch (error) {
 
-      console.log("ERROR LOGIN:", error);
+      console.log(error);
 
       Alert.alert(
         "Error",
-        error.message || "No se pudo conectar con el servidor"
+        "No se pudo conectar con el servidor"
       );
     }
   };
 
   return (
+
     <View style={styles.container}>
 
       <Text style={styles.title}>
@@ -106,29 +171,46 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
       />
 
+      {/* 🔵 BOTÓN LOGIN */}
       <TouchableOpacity
         style={styles.button}
         onPress={iniciarSesion}
       >
+
         <Text style={styles.buttonText}>
           Ingresar
         </Text>
+
       </TouchableOpacity>
 
+      {/* 🔵 CREAR CUENTA */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("Register")}
+        onPress={() =>
+          navigation.navigate(
+            "Register"
+          )
+        }
       >
+
         <Text style={styles.link}>
           Crear cuenta
         </Text>
+
       </TouchableOpacity>
 
+      {/* 🔵 RECUPERAR */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("RecoverPassword")}
+        onPress={() =>
+          navigation.navigate(
+            "RecoverPassword"
+          )
+        }
       >
+
         <Text style={styles.link}>
           ¿Olvidaste tu contraseña?
         </Text>
+
       </TouchableOpacity>
 
     </View>
@@ -136,6 +218,7 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: colors.light,
@@ -181,4 +264,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 15,
   },
+
 });

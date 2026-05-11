@@ -1,5 +1,9 @@
+// CalendarioScreen.js
+
 import React, { useState } from "react";
+
 import {
+  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -10,102 +14,456 @@ import {
 } from "react-native";
 
 export default function CalendarioScreen({ navigation }) {
+
   const [modalVisible, setModalVisible] = useState(false);
+
   const [titulo, setTitulo] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [hora, setHora] = useState("");
+  const [lugar, setLugar] = useState("");
+
   const [sesiones, setSesiones] = useState([
-    { id: 1, titulo: "Sesión 1", fecha: "01 May", estado: "completado" },
-    { id: 2, titulo: "Sesión 2", fecha: "03 May", estado: "pendiente" },
+    {
+      id: 1,
+      codigo: "SES-1001",
+      titulo: "Sesión Ordinaria",
+      fecha: "10 Mayo 2026",
+      hora: "10:00 AM",
+      lugar: "Sala A",
+      estado: "pendiente",
+
+      docentes: [
+        {
+          id: 1,
+          nombre: "Juan Pérez",
+          asistencia: false,
+        },
+        {
+          id: 2,
+          nombre: "María López",
+          asistencia: false,
+        },
+      ],
+    },
   ]);
 
-  // ➕ Agregar sesión
-  const agregarSesion = () => {
-    if (!titulo) return;
+  // GENERAR CÓDIGO
+  const generarCodigo = () => {
 
-    const nueva = {
-      id: sesiones.length + 1,
-      titulo: titulo,
-      fecha: "Nueva fecha",
-      estado: "pendiente",
-    };
+    const numero = Math.floor(
+      1000 + Math.random() * 9000
+    );
 
-    setSesiones([...sesiones, nueva]);
-    setTitulo("");
-    setModalVisible(false);
+    return `SES-${numero}`;
+  };
+
+  // AGREGAR SESIÓN
+  const agregarSesion = async () => {
+
+    if (
+      !titulo ||
+      !fecha ||
+      !hora ||
+      !lugar
+    ) {
+
+      Alert.alert(
+        "Error",
+        "Todos los campos son obligatorios"
+      );
+
+      return;
+    }
+
+    try {
+
+      const response = await fetch(
+        "http://10.10.1.52/academia/api/guardar_sesion.php",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded",
+          },
+
+          body:
+            `titulo=${encodeURIComponent(titulo)}` +
+            `&fecha=${encodeURIComponent(fecha)}` +
+            `&hora=${encodeURIComponent(hora)}` +
+            `&lugar=${encodeURIComponent(lugar)}`,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+
+        const nuevaSesion = {
+
+          id: sesiones.length + 1,
+
+          codigo: generarCodigo(),
+
+          titulo,
+
+          fecha,
+
+          hora,
+
+          lugar,
+
+          estado: "pendiente",
+
+          docentes: [
+            {
+              id: 1,
+              nombre: "Juan Pérez",
+              asistencia: false,
+            },
+            {
+              id: 2,
+              nombre: "María López",
+              asistencia: false,
+            },
+            {
+              id: 3,
+              nombre: "Carlos Sánchez",
+              asistencia: false,
+            },
+          ],
+        };
+
+        setSesiones([
+          ...sesiones,
+          nuevaSesion,
+        ]);
+
+        setTitulo("");
+        setFecha("");
+        setHora("");
+        setLugar("");
+
+        setModalVisible(false);
+
+        Alert.alert(
+          "Éxito",
+          "Sesión programada correctamente"
+        );
+
+      } else {
+
+        Alert.alert(
+          "Error",
+          data.message
+        );
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+      Alert.alert(
+        "Error",
+        "No se pudo conectar"
+      );
+    }
+  };
+
+  // CAMBIAR ESTADO
+  const cambiarEstado = (id) => {
+
+    const nuevasSesiones = sesiones.map((item) => {
+
+      if (item.id === id) {
+
+        return {
+          ...item,
+          estado:
+            item.estado === "pendiente"
+              ? "completada"
+              : "pendiente",
+        };
+      }
+
+      return item;
+    });
+
+    setSesiones(nuevasSesiones);
+  };
+
+  // PASAR LISTA
+  const cambiarAsistencia = (
+    sesionId,
+    docenteId
+  ) => {
+
+    const nuevasSesiones = sesiones.map((sesion) => {
+
+      if (sesion.id === sesionId) {
+
+        const nuevosDocentes =
+          sesion.docentes.map((docente) => {
+
+            if (docente.id === docenteId) {
+
+              return {
+                ...docente,
+                asistencia:
+                  !docente.asistencia,
+              };
+            }
+
+            return docente;
+          });
+
+        return {
+          ...sesion,
+          docentes: nuevosDocentes,
+        };
+      }
+
+      return sesion;
+    });
+
+    setSesiones(nuevasSesiones);
   };
 
   return (
+
     <View style={styles.container}>
 
       <ScrollView>
 
-        {/* 🔙 BOTÓN REGRESO */}
+        {/* BOTÓN REGRESO */}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() =>
+            navigation.navigate("Home")
+          }
         >
-          <Text style={styles.backText}>← Inicio</Text>
+
+          <Text style={styles.backText}>
+            ← Inicio
+          </Text>
+
         </TouchableOpacity>
 
         {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.title}>Calendario</Text>
-          <Text style={styles.subtitle}>Sesiones programadas</Text>
+
+          <Text style={styles.title}>
+            Calendario Académico
+          </Text>
+
+          <Text style={styles.subtitle}>
+            Programación de sesiones
+          </Text>
+
         </View>
 
-        {/* LISTA */}
+        {/* SESIONES */}
         <View style={styles.section}>
+
           {sesiones.map((item) => (
-            <View key={item.id} style={styles.card}>
-              <View>
-                <Text style={styles.sessionTitle}>{item.titulo}</Text>
-                <Text style={styles.date}>{item.fecha}</Text>
-              </View>
+
+            <View
+              key={item.id}
+              style={styles.card}
+            >
+
+              <Text style={styles.sessionTitle}>
+                {item.titulo}
+              </Text>
+
+              <Text style={styles.codigo}>
+                Código: {item.codigo}
+              </Text>
+
+              <Text style={styles.info}>
+                📅 {item.fecha}
+              </Text>
+
+              <Text style={styles.info}>
+                ⏰ {item.hora}
+              </Text>
+
+              <Text style={styles.info}>
+                📍 {item.lugar}
+              </Text>
 
               <Text
                 style={
-                  item.estado === "completado"
-                    ? styles.done
-                    : styles.pending
+                  item.estado === "pendiente"
+                    ? styles.pending
+                    : styles.completed
                 }
               >
-                {item.estado}
+                Estado: {item.estado}
               </Text>
+
+              <TouchableOpacity
+                style={
+                  item.estado === "pendiente"
+                    ? styles.completeButton
+                    : styles.pendingButton
+                }
+                onPress={() =>
+                  cambiarEstado(item.id)
+                }
+              >
+
+                <Text style={styles.buttonText}>
+
+                  {item.estado === "pendiente"
+                    ? "Marcar como completada"
+                    : "Marcar como pendiente"}
+
+                </Text>
+
+              </TouchableOpacity>
+
+              {/* PASE DE LISTA */}
+              <View style={styles.listaContainer}>
+
+                <Text style={styles.listaTitle}>
+                  Pase de Lista
+                </Text>
+
+                {item.docentes.map((docente) => (
+
+                  <View
+                    key={docente.id}
+                    style={styles.docenteCard}
+                  >
+
+                    <Text style={styles.docenteNombre}>
+                      {docente.nombre}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={
+                        docente.asistencia
+                          ? styles.presentButton
+                          : styles.absentButton
+                      }
+                      onPress={() =>
+                        cambiarAsistencia(
+                          item.id,
+                          docente.id
+                        )
+                      }
+                    >
+
+                      <Text style={styles.buttonText}>
+
+                        {docente.asistencia
+                          ? "Presente"
+                          : "Ausente"}
+
+                      </Text>
+
+                    </TouchableOpacity>
+
+                  </View>
+
+                ))}
+
+              </View>
+
             </View>
+
           ))}
+
         </View>
 
       </ScrollView>
 
-      {/* ➕ BOTÓN FLOTANTE */}
+      {/* BOTÓN FLOTANTE */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setModalVisible(true)}
+        onPress={() =>
+          setModalVisible(true)
+        }
       >
-        <Text style={styles.fabText}>＋</Text>
+
+        <Text style={styles.fabText}>
+          ＋
+        </Text>
+
       </TouchableOpacity>
 
-      {/* MODAL REGISTRO */}
-      <Modal visible={modalVisible} transparent animationType="slide">
+      {/* MODAL */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+      >
+
         <View style={styles.modalContainer}>
+
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Nueva sesión</Text>
+
+            <Text style={styles.modalTitle}>
+              Programar Sesión
+            </Text>
 
             <TextInput
-              placeholder="Título de la sesión"
+              placeholder="Título"
               style={styles.input}
               value={titulo}
               onChangeText={setTitulo}
             />
 
-            <TouchableOpacity style={styles.btn} onPress={agregarSesion}>
-              <Text style={styles.btnText}>Registrar</Text>
+            <TextInput
+              placeholder="Fecha"
+              style={styles.input}
+              value={fecha}
+              onChangeText={setFecha}
+            />
+
+            <TextInput
+              placeholder="Hora"
+              style={styles.input}
+              value={hora}
+              onChangeText={setHora}
+            />
+
+            <TextInput
+              placeholder="Lugar"
+              style={styles.input}
+              value={lugar}
+              onChangeText={setLugar}
+            />
+
+            <TouchableOpacity
+              style={styles.btn}
+              onPress={agregarSesion}
+            >
+
+              <Text style={styles.btnText}>
+                Guardar Sesión
+              </Text>
+
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={{ marginTop: 10 }}>Cancelar</Text>
+            <TouchableOpacity
+              onPress={() =>
+                setModalVisible(false)
+              }
+            >
+
+              <Text style={styles.cancel}>
+                Cancelar
+              </Text>
+
             </TouchableOpacity>
+
           </View>
+
         </View>
+
       </Modal>
 
     </View>
@@ -113,9 +471,10 @@ export default function CalendarioScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
+    backgroundColor: "#F1F5F9",
   },
 
   backButton: {
@@ -123,27 +482,26 @@ const styles = StyleSheet.create({
   },
 
   backText: {
-    fontSize: 16,
-    color: "#4A90E2",
+    color: "#2563EB",
     fontWeight: "bold",
+    fontSize: 16,
   },
 
   header: {
-    padding: 20,
-    backgroundColor: "#4A90E2",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    backgroundColor: "#2563EB",
+    padding: 25,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
   },
 
   title: {
-    fontSize: 24,
     color: "#fff",
+    fontSize: 26,
     fontWeight: "bold",
   },
 
   subtitle: {
-    fontSize: 14,
-    color: "#e0e0e0",
+    color: "#DBEAFE",
     marginTop: 5,
   },
 
@@ -153,43 +511,111 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    elevation: 3,
+    padding: 18,
+    borderRadius: 18,
+    marginBottom: 15,
+    elevation: 4,
   },
 
   sessionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    marginBottom: 10,
+    color: "#1E293B",
   },
 
-  date: {
-    fontSize: 13,
-    color: "#777",
+  codigo: {
+    color: "#2563EB",
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
+  info: {
+    fontSize: 14,
+    color: "#475569",
+    marginBottom: 5,
   },
 
   pending: {
-    color: "#E67E22",
+    marginTop: 10,
+    color: "#EA580C",
     fontWeight: "bold",
   },
 
-  done: {
-    color: "#27AE60",
+  completed: {
+    marginTop: 10,
+    color: "#16A34A",
     fontWeight: "bold",
+  },
+
+  completeButton: {
+    backgroundColor: "#16A34A",
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 10,
+  },
+
+  pendingButton: {
+    backgroundColor: "#EA580C",
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 10,
+  },
+
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+
+  listaContainer: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+    paddingTop: 15,
+  },
+
+  listaTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#1E293B",
+  },
+
+  docenteCard: {
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+
+  docenteNombre: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#334155",
+  },
+
+  presentButton: {
+    backgroundColor: "#16A34A",
+    padding: 10,
+    borderRadius: 10,
+  },
+
+  absentButton: {
+    backgroundColor: "#DC2626",
+    padding: 10,
+    borderRadius: 10,
   },
 
   fab: {
     position: "absolute",
-    bottom: 25,
     right: 25,
-    backgroundColor: "#4A90E2",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    bottom: 25,
+    backgroundColor: "#2563EB",
+    width: 65,
+    height: 65,
+    borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
@@ -210,27 +636,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     margin: 20,
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 20,
   },
 
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 15,
   },
 
   input: {
+    backgroundColor: "#F8FAFC",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 10,
+    borderColor: "#CBD5E1",
   },
 
   btn: {
-    backgroundColor: "#4A90E2",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 15,
+    backgroundColor: "#2563EB",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
   },
 
   btnText: {
@@ -238,4 +666,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
+
+  cancel: {
+    textAlign: "center",
+    marginTop: 15,
+    color: "#64748B",
+  },
+
 });

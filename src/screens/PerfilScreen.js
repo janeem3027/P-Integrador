@@ -1,92 +1,146 @@
-// PerfilScreen.js
-
-import React, { useContext, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import * as ImagePicker from "expo-image-picker";
 
-import colors from "../constants/colors";
 import { AuthContext } from "../context/AuthContext";
 
-export default function PerfilScreen() {
+export default function PerfilScreen({
+  navigation,
+}) {
 
-  // CONTEXTO USUARIO
-  const { user, setUser } = useContext(AuthContext);
+  const { user, setUser } =
+    useContext(AuthContext);
 
-  // FOTO PERFIL
-  const [foto, setFoto] = useState(
-    "https://i.pravatar.cc/300"
-  );
+  const [foto, setFoto] =
+    useState(null);
 
-  // CAMBIAR FOTO
+  useEffect(() => {
+    cargarFoto();
+  }, []);
+
+  const cargarFoto = async () => {
+
+    const fotoGuardada =
+      await AsyncStorage.getItem(
+        "fotoPerfil"
+      );
+
+    if (fotoGuardada) {
+
+      setFoto(fotoGuardada);
+
+    } else {
+
+      setFoto(
+        "https://i.pravatar.cc/300"
+      );
+    }
+  };
+
   const cambiarFoto = async () => {
 
-    // PEDIR PERMISOS
     const permiso =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    // SI NO ACEPTA
     if (!permiso.granted) {
 
       Alert.alert(
-        "Permiso denegado",
-        "Debes permitir acceso a tus fotos"
+        "Permiso requerido",
+        "Debes permitir acceso a fotos"
       );
 
       return;
     }
 
-    // ABRIR GALERIA
     const resultado =
       await ImagePicker.launchImageLibraryAsync({
-
         mediaTypes:
           ImagePicker.MediaTypeOptions.Images,
-
         allowsEditing: true,
-
         aspect: [1, 1],
-
         quality: 1,
       });
 
-    // CAMBIAR FOTO
     if (!resultado.canceled) {
 
-      setFoto(resultado.assets[0].uri);
+      const uri =
+        resultado.assets[0].uri;
+
+      setFoto(uri);
+
+      await AsyncStorage.setItem(
+        "fotoPerfil",
+        uri
+      );
     }
   };
 
-  // CERRAR SESION
-  const cerrarSesion = () => {
+  // CERRAR SESIÓN
+  const cerrarSesion = async () => {
 
     Alert.alert(
       "Cerrar sesión",
-      "¿Deseas cerrar sesión?",
+      "¿Deseas salir?",
       [
-
         {
           text: "Cancelar",
           style: "cancel",
         },
 
         {
-          text: "Cerrar sesión",
+          text: "Salir",
+          style: "destructive",
 
-          onPress: () => {
+          onPress: async () => {
 
-            // ELIMINAR USUARIO
-            setUser(null);
+            try {
 
+              // BORRAR USUARIO
+              await AsyncStorage.removeItem(
+                "user"
+              );
+
+              // BORRAR FOTO
+              await AsyncStorage.removeItem(
+                "fotoPerfil"
+              );
+
+              // LIMPIAR CONTEXTO
+              setUser(null);
+
+              // IR AL LOGIN
+              navigation.reset({
+                index: 0,
+                routes: [
+                  { name: "Login" },
+                ],
+              });
+
+            } catch (error) {
+
+              console.log(error);
+
+              Alert.alert(
+                "Error",
+                "No se pudo cerrar sesión"
+              );
+            }
           },
         },
       ]
@@ -95,106 +149,55 @@ export default function PerfilScreen() {
 
   return (
 
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+    >
 
-      {/* FOTO PERFIL */}
-      <View style={styles.profileContainer}>
+      <TouchableOpacity
+        onPress={cambiarFoto}
+      >
 
         <Image
           source={{ uri: foto }}
           style={styles.avatar}
         />
 
-        {/* BOTON CAMBIAR FOTO */}
-        <TouchableOpacity
-          style={styles.changePhotoButton}
-          onPress={cambiarFoto}
-        >
+      </TouchableOpacity>
 
-          <Text style={styles.changePhotoText}>
-            Cambiar foto
-          </Text>
+      <Text style={styles.changePhoto}>
+        Toca la foto para cambiarla
+      </Text>
 
-        </TouchableOpacity>
+      <View style={styles.card}>
 
-        {/* NOMBRE */}
         <Text style={styles.name}>
-
-          {user?.nombre}{" "}
-          {user?.apellido_p}{" "}
-          {user?.apellido_m}
-
+          {user?.nombre}
         </Text>
 
-        {/* ROL */}
         <Text style={styles.role}>
           {user?.rol}
         </Text>
 
       </View>
 
-      {/* INFORMACION */}
-      <View style={styles.card}>
+      <View style={styles.infoCard}>
 
-        <Text style={styles.label}>
-          Nombre
+        <Text style={styles.sectionTitle}>
+          Información personal
         </Text>
 
-        <Text style={styles.value}>
-          {user?.nombre || "No disponible"}
+        <Text style={styles.info}>
+          📧 {user?.correo}
         </Text>
 
-        <Text style={styles.label}>
-          Apellido paterno
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.apellido_p || "No disponible"}
-        </Text>
-
-        <Text style={styles.label}>
-          Apellido materno
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.apellido_m || "No disponible"}
-        </Text>
-
-        <Text style={styles.label}>
-          Correo electrónico
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.correo || "No disponible"}
-        </Text>
-
-        <Text style={styles.label}>
-          Matrícula
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.matricula || "No disponible"}
-        </Text>
-
-        <Text style={styles.label}>
-          Sexo
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.sexo || "No disponible"}
-        </Text>
-
-        <Text style={styles.label}>
-          Rol
-        </Text>
-
-        <Text style={styles.value}>
-          {user?.rol || "No disponible"}
+        <Text style={styles.info}>
+          🆔 {user?.matricula}
         </Text>
 
       </View>
 
-      {/* BOTON CERRAR SESION */}
       <TouchableOpacity
         style={styles.logoutButton}
         onPress={cerrarSesion}
@@ -215,78 +218,76 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: "#F1F5F9",
+    alignItems: "center",
     padding: 20,
   },
 
-  profileContainer: {
-    alignItems: "center",
-    marginTop: 30,
-    marginBottom: 30,
-  },
-
   avatar: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    borderWidth: 4,
-    borderColor: colors.primary,
-  },
-
-  changePhotoButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginTop: 15,
-  },
-
-  changePhotoText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     marginTop: 20,
-    color: "#0F172A",
-    textAlign: "center",
+    borderWidth: 4,
+    borderColor: "#2563EB",
   },
 
-  role: {
-    marginTop: 5,
-    color: "#64748B",
-    fontSize: 16,
-    textTransform: "capitalize",
+  changePhoto: {
+    marginTop: 10,
+    color: "#2563EB",
+    fontWeight: "bold",
+    marginBottom: 20,
   },
 
   card: {
-    backgroundColor: "#fff",
+    width: "100%",
+    backgroundColor: "#2563EB",
     borderRadius: 20,
-    padding: 25,
-    elevation: 4,
+    padding: 20,
+    alignItems: "center",
+    marginBottom: 15,
   },
 
-  label: {
-    fontSize: 14,
-    color: "#64748B",
-    marginTop: 15,
-  },
-
-  value: {
-    fontSize: 18,
+  name: {
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#0F172A",
+    color: "#fff",
+  },
+
+  role: {
+    fontSize: 16,
+    color: "#DBEAFE",
     marginTop: 5,
+  },
+
+  infoCard: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 18,
+    marginTop: 15,
+    elevation: 3,
+  },
+
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#1E293B",
+  },
+
+  info: {
+    fontSize: 15,
+    color: "#475569",
+    marginBottom: 8,
   },
 
   logoutButton: {
     backgroundColor: "#DC2626",
-    padding: 18,
-    borderRadius: 15,
+    width: "100%",
+    padding: 16,
+    borderRadius: 18,
     alignItems: "center",
-    marginTop: 30,
-    marginBottom: 40,
+    marginTop: 25,
   },
 
   logoutText: {

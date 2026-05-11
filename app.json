@@ -8,11 +8,9 @@
     "scheme": "proyectopresidente",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -23,12 +21,10 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
-
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       [
         "expo-splash-screen",
@@ -38,7 +34,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#1E3A8A"
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

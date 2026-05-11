@@ -45,7 +45,7 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       const response = await fetch(
-        "http://10.10.1.44/academia/api/registro.php",
+        "http://10.10.1.52/academia/api/registro.php",
         {
           method: "POST",
           headers: {
