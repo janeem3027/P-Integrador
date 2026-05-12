@@ -1,9 +1,6 @@
 // HomeScreen.js
 
-import React, {
-  useContext,
-  useState,
-} from "react";
+import React, { useContext, useMemo, useState } from "react";
 
 import {
   Image,
@@ -16,613 +13,481 @@ import {
   View,
 } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { AuthContext } from "../context/AuthContext";
 
 // 🔔 MODAL
 import NotificacionesScreen from "./NotificacionesScreen";
 
-export default function HomeScreen({
-  navigation,
-}) {
-
-  const { user } =
-    useContext(AuthContext);
+export default function HomeScreen({ navigation }) {
+  const { user } = useContext(AuthContext);
 
   // 🔔 MODAL
-  const [
-    mostrarNotificaciones,
-
-    setMostrarNotificaciones,
-  ] = useState(false);
+  const [mostrarNotificaciones, setMostrarNotificaciones] =
+    useState(false);
 
   // 🔵 ROLES
   const esAdmin =
     user?.rol === "presidente" ||
     user?.rol === "secretario";
 
-  const esDocente =
-    user?.rol === "docente";
+  const esDocente = user?.rol === "docente";
 
   // 🔵 MENÚS
-  let menus = [];
+  const menus = useMemo(() => {
+    // 🔵 DOCENTE
+    if (esDocente) {
+      return [
+        {
+          titulo: "Pase de Lista",
+          icono: "checkmark-done",
+          color: "#2563EB",
+          screen: "PaseLista",
+        },
 
-  // 🔵 DOCENTE
-  if (esDocente) {
+        {
+          titulo: "Calendario",
+          icono: "calendar",
+          color: "#7C3AED",
+          screen: "Calendario",
+        },
 
-    menus = [
+        {
+          titulo: "Actividades",
+          icono: "clipboard",
+          color: "#0F766E",
+          screen: "PlanTrabajo",
+        },
 
-      {
-        titulo: "Pase de Lista",
+        {
+          titulo: "Reportes",
+          icono: "bar-chart",
+          color: "#EA580C",
+          screen: "Reportes",
+        },
+      ];
+    }
 
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/942/942748.png",
+    // 🔵 ADMIN
+    if (esAdmin) {
+      return [
+        {
+          titulo: "Asistencia",
+          icono: "people",
+          color: "#2563EB",
+          screen: "AsistenciaAdminScreen",
+        },
 
-        screen: "PaseLista",
-      },
+        {
+          titulo: "Minutas",
+          icono: "document-text",
+          color: "#0F766E",
+          screen: "Minuta",
+        },
 
-      {
-        titulo: "Calendario",
+        {
+          titulo: "Actividades",
+          icono: "clipboard",
+          color: "#7C3AED",
+          screen: "PlanTrabajo",
+        },
 
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/747/747310.png",
+        {
+          titulo: "Reportes",
+          icono: "bar-chart",
+          color: "#EA580C",
+          screen: "Reportes",
+        },
 
-        screen: "Calendario",
-      },
+        {
+          titulo: "Docentes",
+          icono: "school",
+          color: "#DC2626",
+          screen: "Docentes",
+        },
 
-      {
-        titulo: "Actividades",
+        {
+          titulo: "Calendario",
+          icono: "calendar",
+          color: "#0891B2",
+          screen: "Calendario",
+        },
+      ];
+    }
 
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/3135/3135755.png",
-
-        screen: "PlanTrabajo",
-      },
-
-      {
-        titulo: "Reportes",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/2436/2436874.png",
-
-        screen: "Reportes",
-      },
-
-    ];
-  }
-
-  // 🔵 ADMIN
-  else if (esAdmin) {
-
-    menus = [
-
-      {
-        titulo: "Asistencia",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/942/942748.png",
-
-        screen:
-          "AsistenciaAdminScreen",
-      },
-
-      {
-        titulo: "Minutas",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/2991/2991112.png",
-
-        screen: "Minuta",
-      },
-
-      {
-        titulo: "Actividades",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/3135/3135755.png",
-
-        screen: "PlanTrabajo",
-      },
-
-      {
-        titulo: "Reportes",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/2436/2436874.png",
-
-        screen: "Reportes",
-      },
-
-      // 🔵 DOCENTES
-      {
-        titulo: "Docentes",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/1995/1995574.png",
-
-        screen: "Docentes",
-      },
-
+    // 🔵 OTROS
+    return [
       {
         titulo: "Calendario",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/747/747310.png",
-
+        icono: "calendar",
+        color: "#2563EB",
         screen: "Calendario",
       },
-
     ];
-  }
-
-  // 🔵 OTROS
-  else {
-
-    menus = [
-
-      {
-        titulo: "Calendario",
-
-        icono:
-          "https://cdn-icons-png.flaticon.com/512/747/747310.png",
-
-        screen: "Calendario",
-      },
-
-    ];
-  }
+  }, [esAdmin, esDocente]);
 
   return (
-
     <SafeAreaView style={styles.safeArea}>
-
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#003B70"
+        backgroundColor="#0B1F3A"
       />
 
       <ScrollView
-        contentContainerStyle={
-          styles.container
-        }
-
-        showsVerticalScrollIndicator={
-          false
-        }
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
       >
-
         {/* 🔵 HEADER */}
         <View style={styles.header}>
-
-          <View
-            style={
-              styles.headerContent
-            }
-          >
-
-            {/* 🔵 TEXTO */}
-            <View
-              style={
-                styles.textContainer
-              }
-            >
-
-              <Text
-                style={styles.welcome}
-              >
-
+          {/* TOP */}
+          <View style={styles.topHeader}>
+            {/* USER INFO */}
+            <View style={styles.userSection}>
+              <Text style={styles.welcome}>
                 Bienvenido(a)
-
               </Text>
 
-              <Text style={styles.name}>
-
-                {user?.nombre ||
-                  "Usuario"}
-
+              <Text style={styles.userName}>
+                {user?.nombre || "Usuario"}
               </Text>
 
-              <View
-                style={
-                  styles.roleBadge
-                }
-              >
+              <View style={styles.roleBadge}>
+                <Ionicons
+                  name="shield-checkmark"
+                  size={14}
+                  color="#FFFFFF"
+                />
 
-                <Text
-                  style={styles.role}
-                >
-
+                <Text style={styles.roleText}>
                   {user?.rol}
-
                 </Text>
-
               </View>
-
             </View>
 
-            {/* 🔵 DERECHA */}
-            <View
-              style={
-                styles.rightSection
-              }
-            >
-
-              {/* 🔔 CAMPANA */}
+            {/* ACTIONS */}
+            <View style={styles.actions}>
+              {/* 🔔 NOTIFICACIONES */}
               <TouchableOpacity
-
-                activeOpacity={0.8}
-
-                style={
-                  styles.notificationButton
-                }
-
+                activeOpacity={0.85}
+                style={styles.notificationButton}
                 onPress={() =>
-                  setMostrarNotificaciones(
-                    true
-                  )
+                  setMostrarNotificaciones(true)
                 }
               >
-
                 <Ionicons
-                  name="notifications"
+                  name="notifications-outline"
                   size={24}
-                  color="#003B70"
+                  color="#0B1F3A"
                 />
 
-                <View
-                  style={
-                    styles.notificationDot
-                  }
-                />
-
+                <View style={styles.notificationDot} />
               </TouchableOpacity>
 
-              {/* 🔵 PERFIL */}
+              {/* 👤 PERFIL */}
               <TouchableOpacity
-                activeOpacity={0.8}
-
+                activeOpacity={0.85}
                 onPress={() =>
-                  navigation.navigate(
-                    "Perfil"
-                  )
+                  navigation.navigate("Perfil")
                 }
               >
-
                 <Image
                   source={{
-                    uri:
-                      "https://i.pravatar.cc/300",
+                    uri: "https://i.pravatar.cc/300",
                   }}
-
-                  style={
-                    styles.avatar
-                  }
+                  style={styles.avatar}
                 />
-
               </TouchableOpacity>
-
             </View>
-
           </View>
 
           {/* 🔵 BANNER */}
           <View style={styles.banner}>
+            <View style={styles.bannerLeft}>
+              <Text style={styles.bannerTitle}>
+                Sistema Académico
+              </Text>
 
-            <Text
-              style={
-                styles.bannerTitle
-              }
-            >
+              <Text style={styles.bannerSubtitle}>
+                Gestión de actividades y control
+                institucional
+              </Text>
+            </View>
 
-              Sistema de Actividades
-
-            </Text>
-
-            <Text
-              style={
-                styles.bannerSubtitle
-              }
-            >
-
-              Academia TECNM
-
-            </Text>
-
+            <View style={styles.bannerIcon}>
+              <Ionicons
+                name="school"
+                size={38}
+                color="#FFFFFF"
+              />
+            </View>
           </View>
-
         </View>
 
         {/* 🔵 PANEL */}
-        <View style={styles.panel}>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>
+            Módulos del sistema
+          </Text>
 
-          {menus.map(
-            (item, index) => (
-
-              <TouchableOpacity
-
-                key={index}
-
-                activeOpacity={0.88}
-
-                style={styles.card}
-
-                onPress={() =>
-                  navigation.navigate(
-                    item.screen
-                  )
-                }
-              >
-
-                {/* 🔵 ICONO */}
-                <View
-                  style={
-                    styles.iconContainer
-                  }
-                >
-
-                  <Image
-                    source={{
-                      uri: item.icono,
-                    }}
-
-                    style={
-                      styles.icon
-                    }
-                  />
-
-                </View>
-
-                {/* 🔵 TEXTO */}
-                <Text
-                  style={
-                    styles.cardText
-                  }
-                >
-
-                  {item.titulo}
-
-                </Text>
-
-              </TouchableOpacity>
-            )
-          )}
-
+          <Text style={styles.panelSubtitle}>
+            Accesos rápidos
+          </Text>
         </View>
 
+        {/* 🔵 CARDS */}
+        <View style={styles.panel}>
+          {menus.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              activeOpacity={0.9}
+              style={styles.card}
+              onPress={() =>
+                navigation.navigate(item.screen)
+              }
+            >
+              {/* ICONO */}
+              <View
+                style={[
+                  styles.iconContainer,
+                  {
+                    backgroundColor: item.color,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={item.icono}
+                  size={32}
+                  color="#FFFFFF"
+                />
+              </View>
+
+              {/* TEXTO */}
+              <Text style={styles.cardText}>
+                {item.titulo}
+              </Text>
+
+              <View style={styles.cardArrow}>
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color="#94A3B8"
+                />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
 
       {/* 🔔 MODAL */}
       <NotificacionesScreen
-
-        visible={
-          mostrarNotificaciones
-        }
-
+        visible={mostrarNotificaciones}
         onClose={() =>
-          setMostrarNotificaciones(
-            false
-          )
+          setMostrarNotificaciones(false)
         }
       />
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
-    backgroundColor: "#003B70",
+    backgroundColor: "#0B1F3A",
   },
 
   container: {
     flexGrow: 1,
-    backgroundColor: "#F4F8FC",
-    paddingBottom: 30,
+    backgroundColor: "#F1F5F9",
+    paddingBottom: 40,
   },
 
+  // 🔵 HEADER
   header: {
-
-    backgroundColor: "#003B70",
-
-    paddingTop: 20,
-
+    backgroundColor: "#0B1F3A",
     paddingHorizontal: 22,
-
-    paddingBottom: 35,
-
-    borderBottomLeftRadius: 35,
-
-    borderBottomRightRadius: 35,
+    paddingTop: 18,
+    paddingBottom: 34,
+    borderBottomLeftRadius: 34,
+    borderBottomRightRadius: 34,
   },
 
-  headerContent: {
+  topHeader: {
     flexDirection: "row",
-    justifyContent:
-      "space-between",
-
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
-  textContainer: {
+  userSection: {
     flex: 1,
   },
 
   welcome: {
-    fontSize: 15,
-    color: "#D6E6F5",
+    color: "#CBD5E1",
+    fontSize: 14,
     marginBottom: 5,
+    fontWeight: "500",
   },
 
-  name: {
+  userName: {
+    color: "#FFFFFF",
     fontSize: 28,
     fontWeight: "bold",
-    color: "#FFFFFF",
   },
 
   roleBadge: {
-
-    marginTop: 10,
-
-    backgroundColor: "#0A5EA8",
-
+    marginTop: 12,
     alignSelf: "flex-start",
-
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1E3A5F",
     paddingHorizontal: 14,
-
-    paddingVertical: 6,
-
-    borderRadius: 30,
+    paddingVertical: 8,
+    borderRadius: 50,
   },
 
-  role: {
+  roleText: {
     color: "#FFFFFF",
+    marginLeft: 6,
     fontSize: 13,
-    textTransform: "capitalize",
     fontWeight: "600",
+    textTransform: "capitalize",
   },
 
-  rightSection: {
+  actions: {
     flexDirection: "row",
     alignItems: "center",
   },
 
   notificationButton: {
-
-    width: 52,
-
-    height: 52,
-
-    borderRadius: 16,
-
+    width: 54,
+    height: 54,
+    borderRadius: 18,
     backgroundColor: "#FFFFFF",
-
     justifyContent: "center",
-
     alignItems: "center",
-
     marginRight: 12,
   },
 
   notificationDot: {
-
     position: "absolute",
-
-    top: 10,
-
-    right: 10,
-
+    top: 12,
+    right: 12,
     width: 10,
-
     height: 10,
-
     borderRadius: 5,
-
     backgroundColor: "#EF4444",
   },
 
   avatar: {
-
-    width: 72,
-
-    height: 72,
-
-    borderRadius: 36,
-
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     borderWidth: 3,
-
     borderColor: "#FFFFFF",
   },
 
+  // 🔵 BANNER
   banner: {
+    marginTop: 28,
+    backgroundColor: "#163B65",
+    borderRadius: 28,
+    padding: 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 
-    marginTop: 25,
-
-    backgroundColor: "#0A5EA8",
-
-    borderRadius: 24,
-
-    paddingVertical: 18,
-
-    paddingHorizontal: 20,
+  bannerLeft: {
+    flex: 1,
+    paddingRight: 15,
   },
 
   bannerTitle: {
     color: "#FFFFFF",
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
+    marginBottom: 8,
   },
 
   bannerSubtitle: {
-    marginTop: 6,
-    color: "#D7E8F7",
+    color: "#D7E3F4",
     fontSize: 14,
+    lineHeight: 22,
+  },
+
+  bannerIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // 🔵 PANEL
+  panelHeader: {
+    paddingHorizontal: 22,
+    marginTop: 28,
+    marginBottom: 18,
+  },
+
+  panelTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#0F172A",
+  },
+
+  panelSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#64748B",
   },
 
   panel: {
-
     flexDirection: "row",
-
     flexWrap: "wrap",
-
-    justifyContent:
-      "space-between",
-
+    justifyContent: "space-between",
     paddingHorizontal: 18,
-
-    marginTop: 28,
   },
 
+  // 🔵 CARD
   card: {
-
     width: "47%",
-
     backgroundColor: "#FFFFFF",
+    borderRadius: 30,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    marginBottom: 20,
 
-    borderRadius: 28,
+    shadowColor: "#0F172A",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
 
-    alignItems: "center",
-
-    paddingVertical: 28,
-
-    marginBottom: 22,
-
-    borderWidth: 1.5,
-
-    borderColor: "#DCE8F5",
+    elevation: 5,
   },
 
   iconContainer: {
-
-    width: 82,
-
-    height: 82,
-
-    borderRadius: 24,
-
+    width: 70,
+    height: 70,
+    borderRadius: 22,
     justifyContent: "center",
-
     alignItems: "center",
-
-    backgroundColor: "#EAF3FB",
-
-    marginBottom: 16,
-  },
-
-  icon: {
-    width: 52,
-    height: 52,
+    marginBottom: 18,
   },
 
   cardText: {
     fontSize: 17,
+    fontWeight: "700",
     color: "#0F172A",
-    fontWeight: "600",
-    textAlign: "center",
   },
 
+  cardArrow: {
+    marginTop: 16,
+    alignSelf: "flex-end",
+  },
 });
