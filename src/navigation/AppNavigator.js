@@ -1,118 +1,169 @@
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+// AppNavigator.js
+
 import React, { useContext } from "react";
+
+import {
+  NavigationContainer,
+} from "@react-navigation/native";
+
+import {
+  createNativeStackNavigator,
+} from "@react-navigation/native-stack";
 
 import { AuthContext } from "../context/AuthContext";
 
-// 🔵 SCREENS
+// 🔵 AUTH
 import LoginScreen from "../screens/LoginScreen";
 import RecoverPasswordScreen from "../screens/RecoverPasswordScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import SplashScreen from "../screens/SplashScreen";
 
+// 🔵 HOME
+import HomeScreen from "../screens/HomeScreen";
+
+// 🔵 NUEVA PANTALLA
+import NotificacionesScreen from "../screens/NotificacionesScreen";
+
+// 🔵 OTRAS PANTALLAS
 import AsistenciaAdminScreen from "../screens/AsistenciaAdminScreen";
 import CalendarioScreen from "../screens/CalendarioScreen";
-import HomeScreen from "../screens/HomeScreen";
+import DocentesScreen from "../screens/DocentesScreen";
 import MinutaScreen from "../screens/MinutaScreen";
 import PaseListaScreen from "../screens/PaseListaScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import PlanTrabajoScreen from "../screens/PlanTrabajoScreen";
-import ReportesScreen from "../screens/ReportesScreen"; // ✅ NUEVO
+import ReportesScreen from "../screens/ReportesScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
 
-  const { user } = useContext(AuthContext);
+  const { user, loading } =
+    useContext(AuthContext);
+
+  // 🔵 SPLASH
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
 
     <NavigationContainer>
 
       <Stack.Navigator
+
+        initialRouteName="Login"
+
         screenOptions={{
+
           headerShown: false,
+
+          animation: "slide_from_right",
+
         }}
       >
 
-        {/* 🔵 SI NO HAY USUARIO */}
         {!user ? (
 
           <>
-            <Stack.Screen
-              name="Splash"
-              component={SplashScreen}
-            />
-
+            {/* 🔵 LOGIN */}
             <Stack.Screen
               name="Login"
               component={LoginScreen}
             />
 
+            {/* 🔵 REGISTRO */}
             <Stack.Screen
               name="Register"
               component={RegisterScreen}
             />
 
+            {/* 🔵 RECUPERAR */}
             <Stack.Screen
               name="RecoverPassword"
-              component={RecoverPasswordScreen}
+              component={
+                RecoverPasswordScreen
+              }
             />
           </>
 
         ) : (
 
-          /* 🔵 USUARIO LOGUEADO */
           <>
-
+            {/* 🔵 HOME */}
             <Stack.Screen
               name="Home"
               component={HomeScreen}
             />
 
+            {/* 🔔 NOTIFICACIONES */}
             <Stack.Screen
-              name="PlanTrabajo"
-              component={PlanTrabajoScreen}
+              name="Notificaciones"
+              component={
+                NotificacionesScreen
+              }
             />
 
-            <Stack.Screen
-              name="Calendario"
-              component={CalendarioScreen}
-            />
-
-            <Stack.Screen
-              name="Minuta"
-              component={MinutaScreen}
-            />
-
-            <Stack.Screen
-              name="PaseLista"
-              component={PaseListaScreen}
-            />
-
-            <Stack.Screen
-              name="AsistenciaAdminScreen"
-              component={AsistenciaAdminScreen}
-            />
-
+            {/* 🔵 PERFIL */}
             <Stack.Screen
               name="Perfil"
               component={PerfilScreen}
             />
 
-            {/* 🔵 NUEVO: REPORTES */}
+            {/* 🔵 CALENDARIO */}
+            <Stack.Screen
+              name="Calendario"
+              component={
+                CalendarioScreen
+              }
+            />
+
+            {/* 🔵 PLAN DE TRABAJO */}
+            <Stack.Screen
+              name="PlanTrabajo"
+              component={
+                PlanTrabajoScreen
+              }
+            />
+
+            {/* 🔵 REPORTES */}
             <Stack.Screen
               name="Reportes"
               component={ReportesScreen}
             />
 
-          </>
+            {/* 🔵 MINUTAS */}
+            <Stack.Screen
+              name="Minuta"
+              component={MinutaScreen}
+            />
 
+            {/* 🔵 DOCENTES */}
+            <Stack.Screen
+              name="Docentes"
+              component={DocentesScreen}
+            />
+
+            {/* 🔵 PASE DE LISTA */}
+            <Stack.Screen
+              name="PaseLista"
+              component={
+                PaseListaScreen
+              }
+            />
+
+            {/* 🔵 ASISTENCIA ADMIN */}
+            <Stack.Screen
+              name="AsistenciaAdminScreen"
+              component={
+                AsistenciaAdminScreen
+              }
+            />
+          </>
         )}
 
       </Stack.Navigator>
 
     </NavigationContainer>
-
   );
 }

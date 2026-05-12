@@ -1,6 +1,9 @@
 // CalendarioScreen.js
 
-import React, { useState } from "react";
+import React, {
+  useContext,
+  useState,
+} from "react";
 
 import {
   Alert,
@@ -13,41 +16,63 @@ import {
   View,
 } from "react-native";
 
-export default function CalendarioScreen({ navigation }) {
+import { AuthContext } from "../context/AuthContext";
 
-  const [modalVisible, setModalVisible] = useState(false);
+export default function CalendarioScreen({
+  navigation,
+}) {
 
-  const [titulo, setTitulo] = useState("");
-  const [fecha, setFecha] = useState("");
-  const [hora, setHora] = useState("");
-  const [lugar, setLugar] = useState("");
+  const { user } =
+    useContext(AuthContext);
 
-  const [sesiones, setSesiones] = useState([
-    {
-      id: 1,
-      codigo: "SES-1001",
-      titulo: "Sesión Ordinaria",
-      fecha: "10 Mayo 2026",
-      hora: "10:00 AM",
-      lugar: "Sala A",
-      estado: "pendiente",
+  // 🔵 VALIDAR ROLES ADMIN
+  const esAdmin =
+    user?.rol === "presidente" ||
+    user?.rol === "secretario" ||
+    user?.rol === "jefe";
 
-      docentes: [
-        {
-          id: 1,
-          nombre: "Juan Pérez",
-          asistencia: false,
-        },
-        {
-          id: 2,
-          nombre: "María López",
-          asistencia: false,
-        },
-      ],
-    },
-  ]);
+  const [modalVisible, setModalVisible] =
+    useState(false);
 
-  // GENERAR CÓDIGO
+  const [titulo, setTitulo] =
+    useState("");
+
+  const [fecha, setFecha] =
+    useState("");
+
+  const [hora, setHora] =
+    useState("");
+
+  const [lugar, setLugar] =
+    useState("");
+
+  const [sesiones, setSesiones] =
+    useState([
+      {
+        id: 1,
+        codigo: "SES-1001",
+        titulo: "Sesión Ordinaria",
+        fecha: "10 Mayo 2026",
+        hora: "10:00 AM",
+        lugar: "Sala A",
+        estado: "pendiente",
+
+        docentes: [
+          {
+            id: 1,
+            nombre: "Juan Pérez",
+            asistencia: false,
+          },
+          {
+            id: 2,
+            nombre: "María López",
+            asistencia: false,
+          },
+        ],
+      },
+    ]);
+
+  // 🔵 GENERAR CÓDIGO
   const generarCodigo = () => {
 
     const numero = Math.floor(
@@ -57,7 +82,7 @@ export default function CalendarioScreen({ navigation }) {
     return `SES-${numero}`;
   };
 
-  // AGREGAR SESIÓN
+  // 🔵 AGREGAR SESIÓN
   const agregarSesion = async () => {
 
     if (
@@ -95,7 +120,8 @@ export default function CalendarioScreen({ navigation }) {
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (data.success) {
 
@@ -106,11 +132,8 @@ export default function CalendarioScreen({ navigation }) {
           codigo: generarCodigo(),
 
           titulo,
-
           fecha,
-
           hora,
-
           lugar,
 
           estado: "pendiente",
@@ -124,11 +147,6 @@ export default function CalendarioScreen({ navigation }) {
             {
               id: 2,
               nombre: "María López",
-              asistencia: false,
-            },
-            {
-              id: 3,
-              nombre: "Carlos Sánchez",
               asistencia: false,
             },
           ],
@@ -157,7 +175,6 @@ export default function CalendarioScreen({ navigation }) {
           "Error",
           data.message
         );
-
       }
 
     } catch (error) {
@@ -171,61 +188,71 @@ export default function CalendarioScreen({ navigation }) {
     }
   };
 
-  // CAMBIAR ESTADO
+  // 🔵 CAMBIAR ESTADO
   const cambiarEstado = (id) => {
 
-    const nuevasSesiones = sesiones.map((item) => {
+    const nuevasSesiones =
+      sesiones.map((item) => {
 
-      if (item.id === id) {
+        if (item.id === id) {
 
-        return {
-          ...item,
-          estado:
-            item.estado === "pendiente"
-              ? "completada"
-              : "pendiente",
-        };
-      }
+          return {
+            ...item,
 
-      return item;
-    });
+            estado:
+              item.estado ===
+              "pendiente"
+                ? "completada"
+                : "pendiente",
+          };
+        }
+
+        return item;
+      });
 
     setSesiones(nuevasSesiones);
   };
 
-  // PASAR LISTA
+  // 🔵 CAMBIAR ASISTENCIA
   const cambiarAsistencia = (
     sesionId,
     docenteId
   ) => {
 
-    const nuevasSesiones = sesiones.map((sesion) => {
+    const nuevasSesiones =
+      sesiones.map((sesion) => {
 
-      if (sesion.id === sesionId) {
+        if (sesion.id === sesionId) {
 
-        const nuevosDocentes =
-          sesion.docentes.map((docente) => {
+          const nuevosDocentes =
+            sesion.docentes.map(
+              (docente) => {
 
-            if (docente.id === docenteId) {
+                if (
+                  docente.id ===
+                  docenteId
+                ) {
 
-              return {
-                ...docente,
-                asistencia:
-                  !docente.asistencia,
-              };
-            }
+                  return {
+                    ...docente,
 
-            return docente;
-          });
+                    asistencia:
+                      !docente.asistencia,
+                  };
+                }
 
-        return {
-          ...sesion,
-          docentes: nuevosDocentes,
-        };
-      }
+                return docente;
+              }
+            );
 
-      return sesion;
-    });
+          return {
+            ...sesion,
+            docentes: nuevosDocentes,
+          };
+        }
+
+        return sesion;
+      });
 
     setSesiones(nuevasSesiones);
   };
@@ -236,7 +263,7 @@ export default function CalendarioScreen({ navigation }) {
 
       <ScrollView>
 
-        {/* BOTÓN REGRESO */}
+        {/* 🔙 BOTÓN REGRESAR */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() =>
@@ -250,7 +277,7 @@ export default function CalendarioScreen({ navigation }) {
 
         </TouchableOpacity>
 
-        {/* HEADER */}
+        {/* 🔵 HEADER */}
         <View style={styles.header}>
 
           <Text style={styles.title}>
@@ -263,7 +290,7 @@ export default function CalendarioScreen({ navigation }) {
 
         </View>
 
-        {/* SESIONES */}
+        {/* 🔵 SESIONES */}
         <View style={styles.section}>
 
           {sesiones.map((item) => (
@@ -295,7 +322,8 @@ export default function CalendarioScreen({ navigation }) {
 
               <Text
                 style={
-                  item.estado === "pendiente"
+                  item.estado ===
+                  "pendiente"
                     ? styles.pending
                     : styles.completed
                 }
@@ -303,74 +331,97 @@ export default function CalendarioScreen({ navigation }) {
                 Estado: {item.estado}
               </Text>
 
-              <TouchableOpacity
-                style={
-                  item.estado === "pendiente"
-                    ? styles.completeButton
-                    : styles.pendingButton
-                }
-                onPress={() =>
-                  cambiarEstado(item.id)
-                }
-              >
+              {/* 🔵 SOLO ADMIN */}
+              {esAdmin && (
 
-                <Text style={styles.buttonText}>
+                <TouchableOpacity
+                  style={
+                    item.estado ===
+                    "pendiente"
+                      ? styles.completeButton
+                      : styles.pendingButton
+                  }
+                  onPress={() =>
+                    cambiarEstado(item.id)
+                  }
+                >
 
-                  {item.estado === "pendiente"
-                    ? "Marcar como completada"
-                    : "Marcar como pendiente"}
+                  <Text style={styles.buttonText}>
 
-                </Text>
+                    {item.estado ===
+                    "pendiente"
+                      ? "Marcar como completada"
+                      : "Marcar como pendiente"}
 
-              </TouchableOpacity>
+                  </Text>
 
-              {/* PASE DE LISTA */}
-              <View style={styles.listaContainer}>
+                </TouchableOpacity>
 
-                <Text style={styles.listaTitle}>
-                  Pase de Lista
-                </Text>
+              )}
 
-                {item.docentes.map((docente) => (
+              {/* 🔵 SOLO ADMIN VE PASE DE LISTA */}
+              {esAdmin && (
 
-                  <View
-                    key={docente.id}
-                    style={styles.docenteCard}
-                  >
+                <View style={styles.listaContainer}>
 
-                    <Text style={styles.docenteNombre}>
-                      {docente.nombre}
-                    </Text>
+                  <Text style={styles.listaTitle}>
+                    Pase de Lista
+                  </Text>
 
-                    <TouchableOpacity
-                      style={
-                        docente.asistencia
-                          ? styles.presentButton
-                          : styles.absentButton
-                      }
-                      onPress={() =>
-                        cambiarAsistencia(
-                          item.id,
-                          docente.id
-                        )
-                      }
-                    >
+                  {item.docentes.map(
+                    (docente) => (
 
-                      <Text style={styles.buttonText}>
+                      <View
+                        key={docente.id}
+                        style={
+                          styles.docenteCard
+                        }
+                      >
 
-                        {docente.asistencia
-                          ? "Presente"
-                          : "Ausente"}
+                        <Text
+                          style={
+                            styles.docenteNombre
+                          }
+                        >
+                          {docente.nombre}
+                        </Text>
 
-                      </Text>
+                        <TouchableOpacity
+                          style={
+                            docente.asistencia
+                              ? styles.presentButton
+                              : styles.absentButton
+                          }
+                          onPress={() =>
+                            cambiarAsistencia(
+                              item.id,
+                              docente.id
+                            )
+                          }
+                        >
 
-                    </TouchableOpacity>
+                          <Text
+                            style={
+                              styles.buttonText
+                            }
+                          >
 
-                  </View>
+                            {docente.asistencia
+                              ? "Presente"
+                              : "Ausente"}
 
-                ))}
+                          </Text>
 
-              </View>
+                        </TouchableOpacity>
+
+                      </View>
+
+                    )
+                  )}
+
+                </View>
+
+              )}
 
             </View>
 
@@ -380,91 +431,99 @@ export default function CalendarioScreen({ navigation }) {
 
       </ScrollView>
 
-      {/* BOTÓN FLOTANTE */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() =>
-          setModalVisible(true)
-        }
-      >
+      {/* 🔵 SOLO ADMIN VE BOTÓN */}
+      {esAdmin && (
 
-        <Text style={styles.fabText}>
-          ＋
-        </Text>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() =>
+            setModalVisible(true)
+          }
+        >
 
-      </TouchableOpacity>
+          <Text style={styles.fabText}>
+            ＋
+          </Text>
 
-      {/* MODAL */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-      >
+        </TouchableOpacity>
 
-        <View style={styles.modalContainer}>
+      )}
 
-          <View style={styles.modal}>
+      {/* 🔵 MODAL SOLO ADMIN */}
+      {esAdmin && (
 
-            <Text style={styles.modalTitle}>
-              Programar Sesión
-            </Text>
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+        >
 
-            <TextInput
-              placeholder="Título"
-              style={styles.input}
-              value={titulo}
-              onChangeText={setTitulo}
-            />
+          <View style={styles.modalContainer}>
 
-            <TextInput
-              placeholder="Fecha"
-              style={styles.input}
-              value={fecha}
-              onChangeText={setFecha}
-            />
+            <View style={styles.modal}>
 
-            <TextInput
-              placeholder="Hora"
-              style={styles.input}
-              value={hora}
-              onChangeText={setHora}
-            />
-
-            <TextInput
-              placeholder="Lugar"
-              style={styles.input}
-              value={lugar}
-              onChangeText={setLugar}
-            />
-
-            <TouchableOpacity
-              style={styles.btn}
-              onPress={agregarSesion}
-            >
-
-              <Text style={styles.btnText}>
-                Guardar Sesión
+              <Text style={styles.modalTitle}>
+                Programar Sesión
               </Text>
 
-            </TouchableOpacity>
+              <TextInput
+                placeholder="Título"
+                style={styles.input}
+                value={titulo}
+                onChangeText={setTitulo}
+              />
 
-            <TouchableOpacity
-              onPress={() =>
-                setModalVisible(false)
-              }
-            >
+              <TextInput
+                placeholder="Fecha"
+                style={styles.input}
+                value={fecha}
+                onChangeText={setFecha}
+              />
 
-              <Text style={styles.cancel}>
-                Cancelar
-              </Text>
+              <TextInput
+                placeholder="Hora"
+                style={styles.input}
+                value={hora}
+                onChangeText={setHora}
+              />
 
-            </TouchableOpacity>
+              <TextInput
+                placeholder="Lugar"
+                style={styles.input}
+                value={lugar}
+                onChangeText={setLugar}
+              />
+
+              <TouchableOpacity
+                style={styles.btn}
+                onPress={agregarSesion}
+              >
+
+                <Text style={styles.btnText}>
+                  Guardar Sesión
+                </Text>
+
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  setModalVisible(false)
+                }
+              >
+
+                <Text style={styles.cancel}>
+                  Cancelar
+                </Text>
+
+              </TouchableOpacity>
+
+            </View>
 
           </View>
 
-        </View>
+        </Modal>
 
-      </Modal>
+      )}
 
     </View>
   );
@@ -629,7 +688,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor:
+      "rgba(0,0,0,0.5)",
   },
 
   modal: {

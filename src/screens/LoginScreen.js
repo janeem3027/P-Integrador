@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+
 import {
   Alert,
   StyleSheet,
@@ -22,6 +23,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] =
     useState("");
 
+  // 🔵 LOGIN
   const iniciarSesion = async () => {
 
     if (
@@ -40,9 +42,10 @@ export default function LoginScreen({ navigation }) {
     try {
 
       const response = await fetch(
-        "http://192.168.110.143/academia/api/login.php",
+        "http://10.10.1.61/academia/api/login.php",
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/x-www-form-urlencoded",
@@ -61,10 +64,10 @@ export default function LoginScreen({ navigation }) {
       const data =
         await response.json();
 
-      // 🔵 LOGIN CORRECTO
+      // 🔵 LOGIN EXITOSO
       if (data.success === true) {
 
-        // 🔵 GUARDAR USUARIO
+        // 🔥 GUARDAR USUARIO
         setUser(data.usuario);
 
         Alert.alert(
@@ -72,61 +75,12 @@ export default function LoginScreen({ navigation }) {
           `Hola ${data.usuario.nombre}`
         );
 
-        // 🔵 REDIRECCIONES POR ROL
+        // ❌ NO USES navigation.replace()
+        // React Navigation cambia automáticamente
+      }
 
-        // 👨‍🏫 DOCENTE
-        if (
-          data.usuario.rol ===
-          "docente"
-        ) {
-
-          navigation.replace(
-            "PaseListaScreen"
-          );
-        }
-
-        // 👨‍💼 PRESIDENTE
-        else if (
-          data.usuario.rol ===
-          "presidente"
-        ) {
-
-          navigation.replace(
-            "AsistenciaAdminScreen"
-          );
-        }
-
-        // 👨‍💼 SECRETARIO
-        else if (
-          data.usuario.rol ===
-          "secretario"
-        ) {
-
-          navigation.replace(
-            "AsistenciaAdminScreen"
-          );
-        }
-
-        // 👨‍💼 JEFE
-        else if (
-          data.usuario.rol ===
-          "jefe"
-        ) {
-
-          navigation.replace(
-            "AsistenciaAdminScreen"
-          );
-        }
-
-        // 🔵 SI NO TIENE ROL
-        else {
-
-          navigation.replace(
-            "Home"
-          );
-        }
-
-      } else {
+      // 🔴 ERROR LOGIN
+      else {
 
         Alert.alert(
           "Error",
@@ -150,10 +104,12 @@ export default function LoginScreen({ navigation }) {
 
     <View style={styles.container}>
 
+      {/* 🔵 TÍTULO */}
       <Text style={styles.title}>
         Iniciar Sesión
       </Text>
 
+      {/* 🔵 CORREO */}
       <TextInput
         placeholder="Correo electrónico"
         style={styles.input}
@@ -163,6 +119,7 @@ export default function LoginScreen({ navigation }) {
         autoCapitalize="none"
       />
 
+      {/* 🔵 PASSWORD */}
       <TextInput
         placeholder="Contraseña"
         secureTextEntry
@@ -198,7 +155,7 @@ export default function LoginScreen({ navigation }) {
 
       </TouchableOpacity>
 
-      {/* 🔵 RECUPERAR */}
+      {/* 🔵 RECUPERAR PASSWORD */}
       <TouchableOpacity
         onPress={() =>
           navigation.navigate(
