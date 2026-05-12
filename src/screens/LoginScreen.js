@@ -1,14 +1,15 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 
 import {
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
+import { apiUrl } from "../config/api";
 import colors from "../constants/colors";
 import { AuthContext } from "../context/AuthContext";
 
@@ -42,7 +43,7 @@ export default function LoginScreen({ navigation }) {
     try {
 
       const response = await fetch(
-        "http://10.10.1.61/academia/api/login.php",
+        apiUrl("login.php"),
         {
           method: "POST",
 
