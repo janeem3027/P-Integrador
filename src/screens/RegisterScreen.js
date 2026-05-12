@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { apiUrl } from "../config/api";
 import colors from "../constants/colors";
 
 export default function RegisterScreen({ navigation }) {
@@ -45,7 +45,7 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       const response = await fetch(
-        "http://10.10.1.52/academia/api/registro.php",
+        apiUrl("registro.php"),
         {
           method: "POST",
           headers: {
