@@ -14,6 +14,12 @@ import * as DocumentPicker from "expo-document-picker";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
+
+// 🔵 API
+import { apiUrl } from "../config/api";
+
+
+
 export default function MinutaScreen({ navigation }) {
   const [titulo, setTitulo] = useState("");
   const [lugar, setLugar] = useState("");

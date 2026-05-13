@@ -1,8 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import {
   Alert,
@@ -15,155 +11,100 @@ import {
 } from "react-native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import * as ImagePicker from "expo-image-picker";
 
 import { AuthContext } from "../context/AuthContext";
 
-export default function PerfilScreen({
-  navigation,
-}) {
+export default function PerfilScreen({ navigation }) {
+  const { user, setUser } = useContext(AuthContext);
 
-  const { user, setUser } =
-    useContext(AuthContext);
-
-  const [foto, setFoto] =
-    useState(null);
+  const [foto, setFoto] = useState(null);
 
   useEffect(() => {
     cargarFoto();
   }, []);
 
   const cargarFoto = async () => {
+    try {
+      const fotoGuardada = await AsyncStorage.getItem("fotoPerfil");
 
-    const fotoGuardada =
-      await AsyncStorage.getItem(
-        "fotoPerfil"
-      );
-
-    if (fotoGuardada) {
-
-      setFoto(fotoGuardada);
-
-    } else {
-
-      setFoto(
-        "https://i.pravatar.cc/300"
-      );
+      if (fotoGuardada) {
+        setFoto(fotoGuardada);
+      } else {
+        setFoto("https://i.pravatar.cc/300");
+      }
+    } catch (error) {
+      console.log(error);
+      setFoto("https://i.pravatar.cc/300");
     }
   };
 
   const cambiarFoto = async () => {
-
     const permiso =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permiso.granted) {
-
       Alert.alert(
         "Permiso requerido",
         "Debes permitir acceso a fotos"
       );
-
       return;
     }
 
-    const resultado =
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:
-          ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
     if (!resultado.canceled) {
-
-      const uri =
-        resultado.assets[0].uri;
+      const uri = resultado.assets[0].uri;
 
       setFoto(uri);
 
-      await AsyncStorage.setItem(
-        "fotoPerfil",
-        uri
-      );
+      await AsyncStorage.setItem("fotoPerfil", uri);
     }
   };
 
-  // CERRAR SESIÓN
   const cerrarSesion = async () => {
+    Alert.alert("Cerrar sesión", "¿Deseas salir?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Salir",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem("user");
+            await AsyncStorage.removeItem("fotoPerfil");
 
-    Alert.alert(
-      "Cerrar sesión",
-      "¿Deseas salir?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
+            setUser(null);
+
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+          } catch (error) {
+            console.log(error);
+            Alert.alert("Error", "No se pudo cerrar sesión");
+          }
         },
-
-        {
-          text: "Salir",
-          style: "destructive",
-
-          onPress: async () => {
-
-            try {
-
-              // BORRAR USUARIO
-              await AsyncStorage.removeItem(
-                "user"
-              );
-
-              // BORRAR FOTO
-              await AsyncStorage.removeItem(
-                "fotoPerfil"
-              );
-
-              // LIMPIAR CONTEXTO
-              setUser(null);
-
-              // IR AL LOGIN
-              navigation.reset({
-                index: 0,
-                routes: [
-                  { name: "Login" },
-                ],
-              });
-
-            } catch (error) {
-
-              console.log(error);
-
-              Alert.alert(
-                "Error",
-                "No se pudo cerrar sesión"
-              );
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
-
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
-    >
-
-      <TouchableOpacity
-        onPress={cambiarFoto}
-      >
-
+    <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity onPress={cambiarFoto}>
         <Image
-          source={{ uri: foto }}
+          source={{
+            uri: foto || "https://i.pravatar.cc/300",
+          }}
           style={styles.avatar}
         />
-
       </TouchableOpacity>
 
       <Text style={styles.changePhoto}>
@@ -171,19 +112,11 @@ export default function PerfilScreen({
       </Text>
 
       <View style={styles.card}>
-
-        <Text style={styles.name}>
-          {user?.nombre}
-        </Text>
-
-        <Text style={styles.role}>
-          {user?.rol}
-        </Text>
-
+        <Text style={styles.name}>{user?.nombre}</Text>
+        <Text style={styles.role}>{user?.rol}</Text>
       </View>
 
       <View style={styles.infoCard}>
-
         <Text style={styles.sectionTitle}>
           Información personal
         </Text>
@@ -195,26 +128,21 @@ export default function PerfilScreen({
         <Text style={styles.info}>
           🆔 {user?.matricula}
         </Text>
-
       </View>
 
       <TouchableOpacity
         style={styles.logoutButton}
         onPress={cerrarSesion}
       >
-
         <Text style={styles.logoutText}>
           Cerrar sesión
         </Text>
-
       </TouchableOpacity>
-
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flexGrow: 1,
     backgroundColor: "#F1F5F9",
@@ -295,5 +223,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-
 });

@@ -2,6 +2,7 @@
 
 import React, {
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -16,6 +17,7 @@ import {
   View,
 } from "react-native";
 
+import { apiUrl } from "../config/api";
 import { AuthContext } from "../context/AuthContext";
 
 export default function CalendarioScreen({
@@ -47,40 +49,14 @@ export default function CalendarioScreen({
     useState("");
 
   const [sesiones, setSesiones] =
-    useState([
-      {
-        id: 1,
-        codigo: "SES-1001",
-        titulo: "Sesión Ordinaria",
-        fecha: "10 Mayo 2026",
-        hora: "10:00 AM",
-        lugar: "Sala A",
-        estado: "pendiente",
+    useState([]);
 
-        docentes: [
-          {
-            id: 1,
-            nombre: "Juan Pérez",
-            asistencia: false,
-          },
-          {
-            id: 2,
-            nombre: "María López",
-            asistencia: false,
-          },
-        ],
-      },
-    ]);
+  // 🔵 CARGAR SESIONES
+  useEffect(() => {
 
-  // 🔵 GENERAR CÓDIGO
-  const generarCodigo = () => {
+    obtenerSesiones();
 
-    const numero = Math.floor(
-      1000 + Math.random() * 9000
-    );
-
-    return `SES-${numero}`;
-  };
+  }, []);
 
   // 🔵 AGREGAR SESIÓN
   const agregarSesion = async () => {
@@ -103,7 +79,7 @@ export default function CalendarioScreen({
     try {
 
       const response = await fetch(
-        "http://10.10.1.52/academia/api/guardar_sesion.php",
+        apiUrl("guardar_sesion.php"),
         {
           method: "POST",
 
@@ -123,67 +99,80 @@ export default function CalendarioScreen({
       const data =
         await response.json();
 
+      console.log("DATA:", data);
+
       if (data.success) {
 
-        const nuevaSesion = {
+        // 🔵 RECARGAR SESIONES
+        await obtenerSesiones();
 
-          id: sesiones.length + 1,
-
-          codigo: generarCodigo(),
-
-          titulo,
-          fecha,
-          hora,
-          lugar,
-
-          estado: "pendiente",
-
-          docentes: [
-            {
-              id: 1,
-              nombre: "Juan Pérez",
-              asistencia: false,
-            },
-            {
-              id: 2,
-              nombre: "María López",
-              asistencia: false,
-            },
-          ],
-        };
-
-        setSesiones([
-          ...sesiones,
-          nuevaSesion,
-        ]);
-
+        // 🔵 LIMPIAR CAMPOS
         setTitulo("");
         setFecha("");
         setHora("");
         setLugar("");
 
+        // 🔵 CERRAR MODAL
         setModalVisible(false);
 
         Alert.alert(
           "Éxito",
-          "Sesión programada correctamente"
+          "Sesión guardada correctamente"
         );
 
       } else {
 
         Alert.alert(
           "Error",
-          data.message
+          data.message ||
+            "No se pudo guardar"
         );
       }
 
     } catch (error) {
 
-      console.log(error);
+      console.log("ERROR:", error);
 
       Alert.alert(
         "Error",
         "No se pudo conectar"
+      );
+    }
+  };
+
+  // 🔵 OBTENER SESIONES
+  const obtenerSesiones = async () => {
+
+    try {
+
+      const res = await fetch(
+        apiUrl("calendario.php")
+      );
+
+      const data =
+        await res.json();
+
+      console.log(
+        "SESIONES:",
+        data
+      );
+
+      if (
+        Array.isArray(data)
+      ) {
+
+        setSesiones(data);
+
+      } else {
+
+        setSesiones([]);
+      }
+
+    } catch (error) {
+
+      console.log(
+        "ERROR:",
+        error
       );
     }
   };
@@ -210,51 +199,9 @@ export default function CalendarioScreen({
         return item;
       });
 
-    setSesiones(nuevasSesiones);
-  };
-
-  // 🔵 CAMBIAR ASISTENCIA
-  const cambiarAsistencia = (
-    sesionId,
-    docenteId
-  ) => {
-
-    const nuevasSesiones =
-      sesiones.map((sesion) => {
-
-        if (sesion.id === sesionId) {
-
-          const nuevosDocentes =
-            sesion.docentes.map(
-              (docente) => {
-
-                if (
-                  docente.id ===
-                  docenteId
-                ) {
-
-                  return {
-                    ...docente,
-
-                    asistencia:
-                      !docente.asistencia,
-                  };
-                }
-
-                return docente;
-              }
-            );
-
-          return {
-            ...sesion,
-            docentes: nuevosDocentes,
-          };
-        }
-
-        return sesion;
-      });
-
-    setSesiones(nuevasSesiones);
+    setSesiones(
+      nuevasSesiones
+    );
   };
 
   return (
@@ -267,11 +214,15 @@ export default function CalendarioScreen({
         <TouchableOpacity
           style={styles.backButton}
           onPress={() =>
-            navigation.navigate("Home")
+            navigation.navigate(
+              "Home"
+            )
           }
         >
 
-          <Text style={styles.backText}>
+          <Text
+            style={styles.backText}
+          >
             ← Inicio
           </Text>
 
@@ -284,7 +235,9 @@ export default function CalendarioScreen({
             Calendario Académico
           </Text>
 
-          <Text style={styles.subtitle}>
+          <Text
+            style={styles.subtitle}
+          >
             Programación de sesiones
           </Text>
 
@@ -293,145 +246,101 @@ export default function CalendarioScreen({
         {/* 🔵 SESIONES */}
         <View style={styles.section}>
 
-          {sesiones.map((item) => (
+          {sesiones.map(
+            (item) => (
 
-            <View
-              key={item.id}
-              style={styles.card}
-            >
-
-              <Text style={styles.sessionTitle}>
-                {item.titulo}
-              </Text>
-
-              <Text style={styles.codigo}>
-                Código: {item.codigo}
-              </Text>
-
-              <Text style={styles.info}>
-                📅 {item.fecha}
-              </Text>
-
-              <Text style={styles.info}>
-                ⏰ {item.hora}
-              </Text>
-
-              <Text style={styles.info}>
-                📍 {item.lugar}
-              </Text>
-
-              <Text
-                style={
-                  item.estado ===
-                  "pendiente"
-                    ? styles.pending
-                    : styles.completed
-                }
+              <View
+                key={item.id}
+                style={styles.card}
               >
-                Estado: {item.estado}
-              </Text>
 
-              {/* 🔵 SOLO ADMIN */}
-              {esAdmin && (
+                <Text
+                  style={
+                    styles.sessionTitle
+                  }
+                >
+                  {item.titulo}
+                </Text>
 
-                <TouchableOpacity
+                <Text
+                  style={styles.codigo}
+                >
+                  Código: {item.codigo}
+                </Text>
+
+                <Text
+                  style={styles.info}
+                >
+                  📅 {item.fecha}
+                </Text>
+
+                <Text
+                  style={styles.info}
+                >
+                  ⏰ {item.hora}
+                </Text>
+
+                <Text
+                  style={styles.info}
+                >
+                  📍 {item.lugar}
+                </Text>
+
+                <Text
                   style={
                     item.estado ===
                     "pendiente"
-                      ? styles.completeButton
-                      : styles.pendingButton
-                  }
-                  onPress={() =>
-                    cambiarEstado(item.id)
+                      ? styles.pending
+                      : styles.completed
                   }
                 >
+                  Estado: {item.estado}
+                </Text>
 
-                  <Text style={styles.buttonText}>
+                {/* 🔵 SOLO ADMIN */}
+                {esAdmin && (
 
-                    {item.estado ===
-                    "pendiente"
-                      ? "Marcar como completada"
-                      : "Marcar como pendiente"}
+                  <TouchableOpacity
+                    style={
+                      item.estado ===
+                      "pendiente"
+                        ? styles.completeButton
+                        : styles.pendingButton
+                    }
+                    onPress={() =>
+                      cambiarEstado(
+                        item.id
+                      )
+                    }
+                  >
 
-                  </Text>
+                    <Text
+                      style={
+                        styles.buttonText
+                      }
+                    >
 
-                </TouchableOpacity>
+                      {item.estado ===
+                      "pendiente"
+                        ? "Marcar como completada"
+                        : "Marcar como pendiente"}
 
-              )}
+                    </Text>
 
-              {/* 🔵 SOLO ADMIN VE PASE DE LISTA */}
-              {esAdmin && (
+                  </TouchableOpacity>
 
-                <View style={styles.listaContainer}>
+                )}
 
-                  <Text style={styles.listaTitle}>
-                    Pase de Lista
-                  </Text>
+              </View>
 
-                  {item.docentes.map(
-                    (docente) => (
-
-                      <View
-                        key={docente.id}
-                        style={
-                          styles.docenteCard
-                        }
-                      >
-
-                        <Text
-                          style={
-                            styles.docenteNombre
-                          }
-                        >
-                          {docente.nombre}
-                        </Text>
-
-                        <TouchableOpacity
-                          style={
-                            docente.asistencia
-                              ? styles.presentButton
-                              : styles.absentButton
-                          }
-                          onPress={() =>
-                            cambiarAsistencia(
-                              item.id,
-                              docente.id
-                            )
-                          }
-                        >
-
-                          <Text
-                            style={
-                              styles.buttonText
-                            }
-                          >
-
-                            {docente.asistencia
-                              ? "Presente"
-                              : "Ausente"}
-
-                          </Text>
-
-                        </TouchableOpacity>
-
-                      </View>
-
-                    )
-                  )}
-
-                </View>
-
-              )}
-
-            </View>
-
-          ))}
+            )
+          )}
 
         </View>
 
       </ScrollView>
 
-      {/* 🔵 SOLO ADMIN VE BOTÓN */}
+      {/* 🔵 BOTÓN FLOTANTE */}
       {esAdmin && (
 
         <TouchableOpacity
@@ -449,288 +358,279 @@ export default function CalendarioScreen({
 
       )}
 
-      {/* 🔵 MODAL SOLO ADMIN */}
-      {esAdmin && (
+      {/* 🔵 MODAL */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+      >
 
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="slide"
+        <View
+          style={
+            styles.modalContainer
+          }
         >
 
-          <View style={styles.modalContainer}>
+          <View style={styles.modal}>
 
-            <View style={styles.modal}>
+            <Text
+              style={
+                styles.modalTitle
+              }
+            >
+              Programar Sesión
+            </Text>
 
-              <Text style={styles.modalTitle}>
-                Programar Sesión
+            <TextInput
+              placeholder="Título"
+              style={styles.input}
+              value={titulo}
+              onChangeText={
+                setTitulo
+              }
+            />
+
+            <TextInput
+              placeholder="Fecha"
+              style={styles.input}
+              value={fecha}
+              onChangeText={
+                setFecha
+              }
+            />
+
+            <TextInput
+              placeholder="Hora"
+              style={styles.input}
+              value={hora}
+              onChangeText={
+                setHora
+              }
+            />
+
+            <TextInput
+              placeholder="Lugar"
+              style={styles.input}
+              value={lugar}
+              onChangeText={
+                setLugar
+              }
+            />
+
+            <TouchableOpacity
+              style={styles.btn}
+              onPress={
+                agregarSesion
+              }
+            >
+
+              <Text
+                style={styles.btnText}
+              >
+                Guardar Sesión
               </Text>
 
-              <TextInput
-                placeholder="Título"
-                style={styles.input}
-                value={titulo}
-                onChangeText={setTitulo}
-              />
+            </TouchableOpacity>
 
-              <TextInput
-                placeholder="Fecha"
-                style={styles.input}
-                value={fecha}
-                onChangeText={setFecha}
-              />
+            <TouchableOpacity
+              onPress={() =>
+                setModalVisible(
+                  false
+                )
+              }
+            >
 
-              <TextInput
-                placeholder="Hora"
-                style={styles.input}
-                value={hora}
-                onChangeText={setHora}
-              />
-
-              <TextInput
-                placeholder="Lugar"
-                style={styles.input}
-                value={lugar}
-                onChangeText={setLugar}
-              />
-
-              <TouchableOpacity
-                style={styles.btn}
-                onPress={agregarSesion}
+              <Text
+                style={styles.cancel}
               >
+                Cancelar
+              </Text>
 
-                <Text style={styles.btnText}>
-                  Guardar Sesión
-                </Text>
-
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() =>
-                  setModalVisible(false)
-                }
-              >
-
-                <Text style={styles.cancel}>
-                  Cancelar
-                </Text>
-
-              </TouchableOpacity>
-
-            </View>
+            </TouchableOpacity>
 
           </View>
 
-        </Modal>
+        </View>
 
-      )}
+      </Modal>
 
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles =
+  StyleSheet.create({
 
-  container: {
-    flex: 1,
-    backgroundColor: "#F1F5F9",
-  },
+    container: {
+      flex: 1,
+      backgroundColor:
+        "#F1F5F9",
+    },
 
-  backButton: {
-    padding: 15,
-  },
+    backButton: {
+      padding: 15,
+    },
 
-  backText: {
-    color: "#2563EB",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+    backText: {
+      color: "#2563EB",
+      fontWeight: "bold",
+      fontSize: 16,
+    },
 
-  header: {
-    backgroundColor: "#2563EB",
-    padding: 25,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-  },
+    header: {
+      backgroundColor:
+        "#2563EB",
+      padding: 25,
+      borderBottomLeftRadius: 25,
+      borderBottomRightRadius: 25,
+    },
 
-  title: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "bold",
-  },
+    title: {
+      color: "#fff",
+      fontSize: 26,
+      fontWeight: "bold",
+    },
 
-  subtitle: {
-    color: "#DBEAFE",
-    marginTop: 5,
-  },
+    subtitle: {
+      color: "#DBEAFE",
+      marginTop: 5,
+    },
 
-  section: {
-    padding: 20,
-  },
+    section: {
+      padding: 20,
+    },
 
-  card: {
-    backgroundColor: "#fff",
-    padding: 18,
-    borderRadius: 18,
-    marginBottom: 15,
-    elevation: 4,
-  },
+    card: {
+      backgroundColor: "#fff",
+      padding: 18,
+      borderRadius: 18,
+      marginBottom: 15,
+      elevation: 4,
+    },
 
-  sessionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#1E293B",
-  },
+    sessionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 10,
+      color: "#1E293B",
+    },
 
-  codigo: {
-    color: "#2563EB",
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
+    codigo: {
+      color: "#2563EB",
+      fontWeight: "bold",
+      marginBottom: 10,
+    },
 
-  info: {
-    fontSize: 14,
-    color: "#475569",
-    marginBottom: 5,
-  },
+    info: {
+      fontSize: 14,
+      color: "#475569",
+      marginBottom: 5,
+    },
 
-  pending: {
-    marginTop: 10,
-    color: "#EA580C",
-    fontWeight: "bold",
-  },
+    pending: {
+      marginTop: 10,
+      color: "#EA580C",
+      fontWeight: "bold",
+    },
 
-  completed: {
-    marginTop: 10,
-    color: "#16A34A",
-    fontWeight: "bold",
-  },
+    completed: {
+      marginTop: 10,
+      color: "#16A34A",
+      fontWeight: "bold",
+    },
 
-  completeButton: {
-    backgroundColor: "#16A34A",
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 10,
-  },
+    completeButton: {
+      backgroundColor:
+        "#16A34A",
+      marginTop: 12,
+      padding: 12,
+      borderRadius: 10,
+    },
 
-  pendingButton: {
-    backgroundColor: "#EA580C",
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 10,
-  },
+    pendingButton: {
+      backgroundColor:
+        "#EA580C",
+      marginTop: 12,
+      padding: 12,
+      borderRadius: 10,
+    },
 
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
+    buttonText: {
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "bold",
+    },
 
-  listaContainer: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-    paddingTop: 15,
-  },
+    fab: {
+      position: "absolute",
+      right: 25,
+      bottom: 25,
+      backgroundColor:
+        "#2563EB",
+      width: 65,
+      height: 65,
+      borderRadius: 40,
+      justifyContent:
+        "center",
+      alignItems: "center",
+      elevation: 5,
+    },
 
-  listaTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#1E293B",
-  },
+    fabText: {
+      color: "#fff",
+      fontSize: 30,
+    },
 
-  docenteCard: {
-    backgroundColor: "#F8FAFC",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
+    modalContainer: {
+      flex: 1,
+      justifyContent:
+        "center",
+      backgroundColor:
+        "rgba(0,0,0,0.5)",
+    },
 
-  docenteNombre: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#334155",
-  },
+    modal: {
+      backgroundColor: "#fff",
+      margin: 20,
+      padding: 20,
+      borderRadius: 20,
+    },
 
-  presentButton: {
-    backgroundColor: "#16A34A",
-    padding: 10,
-    borderRadius: 10,
-  },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 15,
+    },
 
-  absentButton: {
-    backgroundColor: "#DC2626",
-    padding: 10,
-    borderRadius: 10,
-  },
+    input: {
+      backgroundColor:
+        "#F8FAFC",
+      padding: 14,
+      borderRadius: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor:
+        "#CBD5E1",
+    },
 
-  fab: {
-    position: "absolute",
-    right: 25,
-    bottom: 25,
-    backgroundColor: "#2563EB",
-    width: 65,
-    height: 65,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-  },
+    btn: {
+      backgroundColor:
+        "#2563EB",
+      padding: 15,
+      borderRadius: 12,
+      marginTop: 10,
+    },
 
-  fabText: {
-    color: "#fff",
-    fontSize: 30,
-  },
+    btnText: {
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "bold",
+    },
 
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor:
-      "rgba(0,0,0,0.5)",
-  },
+    cancel: {
+      textAlign: "center",
+      marginTop: 15,
+      color: "#64748B",
+    },
 
-  modal: {
-    backgroundColor: "#fff",
-    margin: 20,
-    padding: 20,
-    borderRadius: 20,
-  },
-
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-
-  input: {
-    backgroundColor: "#F8FAFC",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-  },
-
-  btn: {
-    backgroundColor: "#2563EB",
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 10,
-  },
-
-  btnText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-
-  cancel: {
-    textAlign: "center",
-    marginTop: 15,
-    color: "#64748B",
-  },
-
-});
+  });

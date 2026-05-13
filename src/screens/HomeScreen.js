@@ -20,10 +20,10 @@ import { AuthContext } from "../context/AuthContext";
 import NotificacionesScreen from "./NotificacionesScreen";
 
 export default function HomeScreen({ navigation }) {
+
   const { user } = useContext(AuthContext);
 
-  const [mostrarNotificaciones, setMostrarNotificaciones] =
-    useState(false);
+  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
 
   const esAdmin =
     user?.rol === "presidente" ||
@@ -32,6 +32,7 @@ export default function HomeScreen({ navigation }) {
   const esDocente = user?.rol === "docente";
 
   const menus = useMemo(() => {
+
     if (esDocente) {
       return [
         {
@@ -67,7 +68,7 @@ export default function HomeScreen({ navigation }) {
           titulo: "Asistencia",
           icono: "people",
           color: "#2563EB",
-          screen: "AsistenciaAdminScreen",
+          screen: "AsistenciaAdmin", // ✅ CORRECTO
         },
         {
           titulo: "Minutas",
@@ -116,7 +117,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#0B1F3A" />
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.container}>
 
         {/* HEADER */}
         <View style={styles.header}>
@@ -130,7 +131,7 @@ export default function HomeScreen({ navigation }) {
               </Text>
 
               <View style={styles.roleBadge}>
-                <Ionicons name="shield-checkmark" size={14} color="#FFFFFF" />
+                <Ionicons name="shield-checkmark" size={14} color="#fff" />
                 <Text style={styles.roleText}>{user?.rol}</Text>
               </View>
             </View>
@@ -160,26 +161,16 @@ export default function HomeScreen({ navigation }) {
 
           {/* BANNER */}
           <View style={styles.banner}>
-
-            <View style={styles.bannerLeft}>
+            <View>
               <Text style={styles.bannerTitle}>Sistema Académico</Text>
               <Text style={styles.bannerSubtitle}>
-                Gestión de actividades y control institucional
+                Gestión de actividades institucionales
               </Text>
             </View>
 
-            <View style={styles.bannerIcon}>
-              <Ionicons name="school" size={38} color="#FFFFFF" />
-            </View>
-
+            <Ionicons name="school" size={40} color="#fff" />
           </View>
 
-        </View>
-
-        {/* PANEL HEADER */}
-        <View style={styles.panelHeader}>
-          <Text style={styles.panelTitle}>Módulos del sistema</Text>
-          <Text style={styles.panelSubtitle}>Accesos rápidos</Text>
         </View>
 
         {/* CARDS */}
@@ -191,21 +182,19 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate(item.screen)}
             >
               <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-                <Ionicons name={item.icono} size={32} color="#FFFFFF" />
+                <Ionicons name={item.icono} size={30} color="#fff" />
               </View>
 
               <Text style={styles.cardText}>{item.titulo}</Text>
 
-              <View style={styles.cardArrow}>
-                <Ionicons name="arrow-forward" size={18} color="#94A3B8" />
-              </View>
+              <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
             </TouchableOpacity>
           ))}
         </View>
 
       </ScrollView>
 
-      {/* MODAL NOTIFICACIONES */}
+      {/* NOTIFICACIONES */}
       <NotificacionesScreen
         visible={mostrarNotificaciones}
         onClose={() => setMostrarNotificaciones(false)}
@@ -219,18 +208,15 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#0B1F3A" },
 
   container: {
-    flexGrow: 1,
-    backgroundColor: "#F1F5F9",
     paddingBottom: 40,
+    backgroundColor: "#F1F5F9",
   },
 
   header: {
     backgroundColor: "#0B1F3A",
-    paddingHorizontal: 22,
-    paddingTop: 18,
-    paddingBottom: 34,
-    borderBottomLeftRadius: 34,
-    borderBottomRightRadius: 34,
+    padding: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
 
   topHeader: {
@@ -241,123 +227,84 @@ const styles = StyleSheet.create({
 
   userSection: { flex: 1 },
 
-  welcome: { color: "#CBD5E1", fontSize: 14 },
+  welcome: { color: "#ccc" },
 
-  userName: { color: "#FFFFFF", fontSize: 28, fontWeight: "bold" },
+  userName: { color: "#fff", fontSize: 26, fontWeight: "bold" },
 
   roleBadge: {
-    marginTop: 12,
     flexDirection: "row",
+    marginTop: 10,
     backgroundColor: "#1E3A5F",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 50,
+    padding: 6,
+    borderRadius: 20,
     alignSelf: "flex-start",
   },
 
-  roleText: {
-    color: "#FFFFFF",
-    marginLeft: 6,
-    fontSize: 13,
-  },
+  roleText: { color: "#fff", marginLeft: 6 },
 
   actions: { flexDirection: "row", alignItems: "center" },
 
   notificationButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 15,
+    marginRight: 10,
   },
 
   notificationDot: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#EF4444",
+    top: 5,
+    right: 5,
+    width: 8,
+    height: 8,
+    backgroundColor: "red",
+    borderRadius: 4,
   },
 
   avatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
+    width: 45,
+    height: 45,
+    borderRadius: 25,
   },
 
   banner: {
-    marginTop: 28,
-    backgroundColor: "#163B65",
-    borderRadius: 28,
-    padding: 22,
+    marginTop: 20,
+    backgroundColor: "#1E3A5F",
+    padding: 20,
+    borderRadius: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-
-  bannerLeft: { flex: 1 },
-
-  bannerTitle: { color: "#FFFFFF", fontSize: 24, fontWeight: "bold" },
-
-  bannerSubtitle: { color: "#D7E3F4", fontSize: 14 },
-
-  bannerIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    justifyContent: "center",
     alignItems: "center",
   },
 
-  panelHeader: {
-    paddingHorizontal: 22,
-    marginTop: 28,
-    marginBottom: 18,
-  },
+  bannerTitle: { color: "#fff", fontSize: 20, fontWeight: "bold" },
 
-  panelTitle: { fontSize: 24, fontWeight: "bold", color: "#0F172A" },
-
-  panelSubtitle: { fontSize: 14, color: "#64748B" },
+  bannerSubtitle: { color: "#ccc" },
 
   panel: {
+    padding: 15,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
   },
 
   card: {
     width: "47%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 30,
-    padding: 24,
-    marginBottom: 20,
-    elevation: 5,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 15,
+    alignItems: "center",
   },
 
   iconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 18,
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 10,
   },
 
   cardText: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
-  cardArrow: {
-    marginTop: 16,
-    alignSelf: "flex-end",
+    fontWeight: "bold",
+    marginBottom: 10,
   },
 });

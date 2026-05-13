@@ -12,14 +12,11 @@ import {
 
 import colors from "../constants/colors";
 
-// Simulación de base de datos (solo pruebas)
-const registeredEmails = ["usuario@dominio.com", "admin@dominio.com"];
-
 export default function RecoverPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRecover = () => {
+  const handleRecover = async () => {
     if (!email.trim()) {
       Alert.alert("Error", "Ingresa tu correo electrónico");
       return;
@@ -31,33 +28,39 @@ export default function RecoverPasswordScreen({ navigation }) {
       return;
     }
 
-    // Simulación de verificación
-    if (!registeredEmails.includes(email)) {
-      Alert.alert("Error", "Este correo no está registrado");
-      return;
-    }
+    try {
+      setLoading(true);
 
-    setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
-
-      // Token simulado (en producción viene del backend)
-      const recoveryToken = "123456";
-
-      Alert.alert(
-        "Código enviado",
-        "Revisa tu correo e ingresa el código recibido"
+      const response = await fetch(
+        "http://192.168.110.143/academia/api/recover-password.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email: email.trim().toLowerCase() })
+        }
       );
 
-      setEmail("");
+      const data = await response.json();
 
-      // 🔥 IMPORTANTE: nombre debe coincidir con AppNavigator
-      navigation.navigate("ConfirmTokenScreen", {
-        token: recoveryToken,
-        email: email
-      });
-    }, 1500);
+      setLoading(false);
+
+      console.log("RESPUESTA API:", data);
+
+      Alert.alert("Respuesta", data.message);
+
+      if (data.message === "Correo enviado correctamente") {
+        navigation.navigate("ConfirmTokenScreen", {
+          email: email.trim().toLowerCase()
+        });
+      }
+
+    } catch (error) {
+      setLoading(false);
+      console.log("ERROR FETCH:", error);
+      Alert.alert("Error", "No se pudo conectar al servidor");
+    }
   };
 
   return (
