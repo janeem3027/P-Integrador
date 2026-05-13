@@ -1,169 +1,70 @@
-// AppNavigator.js
-
 import React, { useContext } from "react";
 
-import {
-  NavigationContainer,
-} from "@react-navigation/native";
-
-import {
-  createNativeStackNavigator,
-} from "@react-navigation/native-stack";
-
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AuthContext } from "../context/AuthContext";
 
-// 🔵 AUTH
+// Auth screens
 import LoginScreen from "../screens/LoginScreen";
-import RecoverPasswordScreen from "../screens/RecoverPasswordScreen";
 import RegisterScreen from "../screens/RegisterScreen";
+import RecoverPasswordScreen from "../screens/RecoverPasswordScreen";
+import ConfirmTokenScreen from "../screens/ConfirmTokenScreen";
 import SplashScreen from "../screens/SplashScreen";
 
-// 🔵 HOME
+// App screens
 import HomeScreen from "../screens/HomeScreen";
-
-// 🔵 NUEVA PANTALLA
 import NotificacionesScreen from "../screens/NotificacionesScreen";
-
-// 🔵 OTRAS PANTALLAS
-import AsistenciaAdminScreen from "../screens/AsistenciaAdminScreen";
-import CalendarioScreen from "../screens/CalendarioScreen";
-import DocentesScreen from "../screens/DocentesScreen";
-import MinutaScreen from "../screens/MinutaScreen";
-import PaseListaScreen from "../screens/PaseListaScreen";
 import PerfilScreen from "../screens/PerfilScreen";
+import CalendarioScreen from "../screens/CalendarioScreen";
 import PlanTrabajoScreen from "../screens/PlanTrabajoScreen";
 import ReportesScreen from "../screens/ReportesScreen";
+import MinutaScreen from "../screens/MinutaScreen";
+import DocentesScreen from "../screens/DocentesScreen";
+import PaseListaScreen from "../screens/PaseListaScreen";
+import AsistenciaAdminScreen from "../screens/AsistenciaAdminScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  const { user, loading } = useContext(AuthContext);
 
-  const { user, loading } =
-    useContext(AuthContext);
-
-  // 🔵 SPLASH
+  // Pantalla de carga
   if (loading) {
     return <SplashScreen />;
   }
 
   return (
-
     <NavigationContainer>
-
       <Stack.Navigator
-
-        initialRouteName="Login"
-
         screenOptions={{
-
           headerShown: false,
-
           animation: "slide_from_right",
-
         }}
       >
-
+        {/* 🔐 AUTH STACK */}
         {!user ? (
-
           <>
-            {/* 🔵 LOGIN */}
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-            />
-
-            {/* 🔵 REGISTRO */}
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-            />
-
-            {/* 🔵 RECUPERAR */}
-            <Stack.Screen
-              name="RecoverPassword"
-              component={
-                RecoverPasswordScreen
-              }
-            />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="RecoverPassword" component={RecoverPasswordScreen} />
+            <Stack.Screen name="ConfirmTokenScreen" component={ConfirmTokenScreen} />
           </>
-
         ) : (
-
+          /* 📱 APP STACK */
           <>
-            {/* 🔵 HOME */}
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-            />
-
-            {/* 🔔 NOTIFICACIONES */}
-            <Stack.Screen
-              name="Notificaciones"
-              component={
-                NotificacionesScreen
-              }
-            />
-
-            {/* 🔵 PERFIL */}
-            <Stack.Screen
-              name="Perfil"
-              component={PerfilScreen}
-            />
-
-            {/* 🔵 CALENDARIO */}
-            <Stack.Screen
-              name="Calendario"
-              component={
-                CalendarioScreen
-              }
-            />
-
-            {/* 🔵 PLAN DE TRABAJO */}
-            <Stack.Screen
-              name="PlanTrabajo"
-              component={
-                PlanTrabajoScreen
-              }
-            />
-
-            {/* 🔵 REPORTES */}
-            <Stack.Screen
-              name="Reportes"
-              component={ReportesScreen}
-            />
-
-            {/* 🔵 MINUTAS */}
-            <Stack.Screen
-              name="Minuta"
-              component={MinutaScreen}
-            />
-
-            {/* 🔵 DOCENTES */}
-            <Stack.Screen
-              name="Docentes"
-              component={DocentesScreen}
-            />
-
-            {/* 🔵 PASE DE LISTA */}
-            <Stack.Screen
-              name="PaseLista"
-              component={
-                PaseListaScreen
-              }
-            />
-
-            {/* 🔵 ASISTENCIA ADMIN */}
-            <Stack.Screen
-              name="AsistenciaAdminScreen"
-              component={
-                AsistenciaAdminScreen
-              }
-            />
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
+            <Stack.Screen name="Perfil" component={PerfilScreen} />
+            <Stack.Screen name="Calendario" component={CalendarioScreen} />
+            <Stack.Screen name="PlanTrabajo" component={PlanTrabajoScreen} />
+            <Stack.Screen name="Reportes" component={ReportesScreen} />
+            <Stack.Screen name="Minuta" component={MinutaScreen} />
+            <Stack.Screen name="Docentes" component={DocentesScreen} />
+            <Stack.Screen name="PaseLista" component={PaseListaScreen} />
+            <Stack.Screen name="AsistenciaAdminScreen" component={AsistenciaAdminScreen} />
           </>
         )}
-
       </Stack.Navigator>
-
     </NavigationContainer>
   );
 }
